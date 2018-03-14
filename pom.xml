@@ -17,6 +17,14 @@
 		<version>2.0.0.RELEASE</version>
 	</parent>
 
+	<repositories>
+		<repository>
+			<id>jitpack.io</id>
+			<name>jitpack</name>
+			<url>https://jitpack.io</url>
+		</repository>
+	</repositories>
+
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
