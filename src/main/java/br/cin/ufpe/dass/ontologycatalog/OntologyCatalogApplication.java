@@ -53,7 +53,6 @@ public class OntologyCatalogApplication {
 		// Instantiate wordnet.
 		try {
 			wordNet = WordNetDatabase.getFileInstance();
-			wordNet.allWordForms(); //loading wordnet to memory
 		} catch (Exception e) {
 			log.error("Failed to start wordnet database");
 		}
