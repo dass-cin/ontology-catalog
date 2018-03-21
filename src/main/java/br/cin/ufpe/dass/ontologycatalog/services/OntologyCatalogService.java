@@ -5,6 +5,7 @@ import br.cin.ufpe.dass.ontologycatalog.repository.ClassNodeRepository;
 import br.cin.ufpe.dass.ontologycatalog.repository.DataPropertyRepository;
 import br.cin.ufpe.dass.ontologycatalog.repository.ObjectPropertyRepository;
 import br.cin.ufpe.dass.ontologycatalog.repository.OntologyNodeRepository;
+import br.cin.ufpe.dass.ontologycatalog.services.exception.OntologyCatalogException;
 import edu.smu.tspell.wordnet.WordNetDatabase;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.IRI;
@@ -69,7 +70,7 @@ public class OntologyCatalogService {
         OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
         reasoner = reasonerFactory.createReasoner(ontology);
         if (!reasoner.isConsistent()) {
-            throw new Exception("Ontology is inconsistent");
+            throw new OntologyCatalogException("Ontology is inconsistent");
         }
         reasoner.precomputeInferences();
 
@@ -78,24 +79,24 @@ public class OntologyCatalogService {
         ontologyNode.setUri(iri.toURI().toString());
         ontologyNode.setVersion(ontology.getOntologyID().getVersionIRI().toString());
         importOntologyClasses(ontologyNode, ontology);
-        importObjectProperties(ontologyNode, ontology);
+        importObjectProperties(ontology);
         importDataProperties(ontologyNode, ontology);
         ontologyNodeRepository.save(ontologyNode);
     }
 
-    public void importObjectProperties(OntologyNode ontologyNode, OWLOntology ontology) {
+    public void importObjectProperties(OWLOntology ontology) {
         ontology.objectPropertiesInSignature().forEach(owlObjectProperty -> {
 
             ObjectPropertyNode propertyNode = new ObjectPropertyNode(extractElementName(owlObjectProperty.toString()));
 
-            reasoner.objectPropertyDomains(owlObjectProperty, true).forEach( (domain) -> {
+            reasoner.objectPropertyDomains(owlObjectProperty, true).forEach( domain -> {
                 String domainClassName = extractElementName(domain.toString());
                 ClassNode domainClass = classNodeRepository.findById(domainClassName).orElseThrow(() -> new RuntimeException(String.format("Class %s does not exists to be used as domain", domainClassName)));
                 if (!propertyNode.getDomain().contains(domainClass)) {
                     propertyNode.getDomain().add(domainClass);
                 }
             });
-            reasoner.objectPropertyRanges(owlObjectProperty, true).forEach( (range) -> {
+            reasoner.objectPropertyRanges(owlObjectProperty, true).forEach( range -> {
                 String rangeClassName = extractElementName(range.toString());
                 ClassNode rangeClass = classNodeRepository.findById(rangeClassName).orElseThrow(() -> new RuntimeException(String.format("Class %s does not exists to be used as range", rangeClassName)));
                 if (!propertyNode.getRange().contains(rangeClass)) {
@@ -113,7 +114,7 @@ public class OntologyCatalogService {
 
             DataPropertyNode propertyNode = new DataPropertyNode(extractElementName(owlDataProperty.toString()));
 
-            reasoner.dataPropertyDomains(owlDataProperty, true).forEach( (domain) -> {
+            reasoner.dataPropertyDomains(owlDataProperty, true).forEach( domain -> {
                 String domainClassName = extractElementName(domain.toString());
                 ClassNode domainClass = classNodeRepository.findById(domainClassName).orElseThrow(() -> new RuntimeException(String.format("Class %s does not exists to be used as domain", domainClassName)));
                 if (!propertyNode.getDomain().contains(domainClass)) {
@@ -121,7 +122,7 @@ public class OntologyCatalogService {
                 }
             });
 
-            ontology.dataPropertyRangeAxioms(owlDataProperty).forEach((dataProperty) -> {
+            ontology.dataPropertyRangeAxioms(owlDataProperty).forEach(dataProperty -> {
                 String range = extractElementName(dataProperty.getRange().toString());
                 if (!propertyNode.getRange().contains(range)) {
                     propertyNode.getRange().add(range);
@@ -132,7 +133,7 @@ public class OntologyCatalogService {
         });
     }
 
-    public void importOntologyClasses(OntologyNode ontologyNode, OWLOntology ontology) throws Exception {
+    public void importOntologyClasses(OntologyNode ontologyNode, OWLOntology ontology) {
 
         ClassNode thing = new ClassNode();
         thing.setName("owl:Thing");
@@ -148,7 +149,12 @@ public class OntologyCatalogService {
             classNode.setSynonyms(synset.stream().map(s -> new SynonymNode(s)).collect(Collectors.toSet()));
 
             //Import super classes
-            Supplier<Stream<OWLClass>> superClasses = () -> reasoner.superClasses(owlClass, true);
+            Supplier<Stream<OWLClass>> superClasses = new Supplier<Stream<OWLClass>>() {
+                @Override
+                public Stream<OWLClass> get() {
+                    return reasoner.superClasses(owlClass, true);
+                }
+            };
             if (superClasses.get().count() == 0 && !classNode.getName().equals("owl:Thing")) {
                 //Create relation to thing node
                 classNode.getSuperClasses().add(thing);
@@ -169,8 +175,8 @@ public class OntologyCatalogService {
     public String extractElementName(String fullname) {
         if (fullname.contains("#")) {
             fullname = fullname.substring(
-                    fullname.indexOf("#")+1,
-                    fullname.lastIndexOf(">"));
+                    fullname.indexOf('#')+1,
+                    fullname.lastIndexOf('>'));
         }
         return fullname;
     }

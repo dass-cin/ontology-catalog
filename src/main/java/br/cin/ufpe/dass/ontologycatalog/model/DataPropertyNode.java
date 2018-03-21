@@ -1,5 +1,8 @@
 package br.cin.ufpe.dass.ontologycatalog.model;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Labels;
 import org.neo4j.ogm.annotation.NodeEntity;
@@ -11,6 +14,9 @@ import java.util.List;
 import java.util.Set;
 
 @NodeEntity
+@Getter
+@Setter
+@NoArgsConstructor
 public class DataPropertyNode {
 
     @Id
@@ -27,51 +33,7 @@ public class DataPropertyNode {
     @Labels
     private List<String> labels;
 
-    public Set<ClassNode> getDomain() {
-        if (domain == null) {
-            domain = new HashSet<>();
-        }
-        return domain;
-    }
-
-    public void setDomain(Set<ClassNode> domain) {
-        this.domain = domain;
-    }
-
-    public Set<String> getRange() {
-        if (range == null) {
-            range = new HashSet<>();
-        }
-        return range;
-    }
-
-    public void setRange(Set<String> range) {
-        this.range = range;
-    }
-
-    public DataPropertyNode() {
-    }
-
     public DataPropertyNode(String name) {
         this.name = name;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<String> getLabels() {
-        if (labels == null) {
-            labels = new ArrayList<>();
-        }
-        return labels;
-    }
-
-    public void setLabels(List<String> labels) {
-        this.labels = labels;
     }
 }

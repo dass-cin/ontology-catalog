@@ -1,5 +1,8 @@
 package br.cin.ufpe.dass.ontologycatalog.model;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Labels;
 import org.neo4j.ogm.annotation.NodeEntity;
@@ -11,6 +14,9 @@ import java.util.List;
 import java.util.Set;
 
 @NodeEntity
+@Getter
+@Setter
+@NoArgsConstructor
 public class ClassNode {
 
     @Id
@@ -22,9 +28,6 @@ public class ClassNode {
     @Relationship(type = "hasSynonyms")
     private Set<SynonymNode> synonyms;
 
-    public ClassNode() {
-    }
-
     public ClassNode(String name) {
         this.name = name;
     }
@@ -32,44 +35,4 @@ public class ClassNode {
     @Relationship(type = "isA")
     private Set<ClassNode> superClasses;
 
-    public Set<ClassNode> getSuperClasses() {
-        if (superClasses == null) {
-            superClasses = new HashSet<>();
-        }
-        return superClasses;
-    }
-
-    public Set<SynonymNode> getSynonyms() {
-        if (synonyms == null) {
-            synonyms = new HashSet<>();
-        }
-        return synonyms;
-    }
-
-    public void setSynonyms(Set<SynonymNode> synonyms) {
-        this.synonyms = synonyms;
-    }
-
-    public void setSuperClasses(Set<ClassNode> superClasses) {
-        this.superClasses = superClasses;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public List<String> getLabels() {
-        if (labels == null) {
-            labels = new ArrayList<>();
-        }
-        return labels;
-    }
-
-    public void setLabels(List<String> labels) {
-        this.labels = labels;
-    }
 }

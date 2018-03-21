@@ -23,7 +23,7 @@ public class OntologyCatalogApplication {
 
 	private final ApplicationConfig applicationConfig;
 
-	private final static Logger log = LoggerFactory.getLogger(OntologyCatalogApplication.class);
+	private static final Logger log = LoggerFactory.getLogger(OntologyCatalogApplication.class);
 
 	public OntologyCatalogApplication(ApplicationConfig applicationConfig) {
 		this.applicationConfig = applicationConfig;
@@ -34,7 +34,7 @@ public class OntologyCatalogApplication {
 	}
 
 	@Bean
-	CommandLineRunner demo(OntologyCatalogService ontologyCatalogService) {
+	CommandLineRunner run(OntologyCatalogService ontologyCatalogService) {
 		return args -> {
 			IRI sourceIri = IRI.create(URI.create("file:///Users/diego/ontologies/conference/cmt.owl"));
 			ontologyCatalogService.importOntologyAsGraph(sourceIri);
