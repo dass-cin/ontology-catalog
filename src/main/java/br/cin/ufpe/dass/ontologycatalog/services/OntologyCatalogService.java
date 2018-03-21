@@ -105,7 +105,7 @@ public class OntologyCatalogService {
         });
     }
 
-    public void importDataProperties(OntologyNode ontologyNode, OWLOntology ontology) {
+    public void importDataProperties(OWLOntology ontology) {
 
         ontology.dataPropertiesInSignature().forEach(owlDataProperty -> {
 
