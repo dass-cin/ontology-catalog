@@ -8,10 +8,7 @@ import br.cin.ufpe.dass.ontologycatalog.repository.OntologyNodeRepository;
 import br.cin.ufpe.dass.ontologycatalog.services.exception.OntologyCatalogException;
 import edu.smu.tspell.wordnet.WordNetDatabase;
 import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.semanticweb.owlapi.reasoner.structural.StructuralReasonerFactory;
@@ -65,7 +62,7 @@ public class OntologyCatalogService {
     public OntologyNode getOrCreateOntologyNodeWithUniqueFactory(OntologyNode ontologyNode) {
         return ontologyNodeRepository.findById(ontologyNode.getName()).orElse(ontologyNodeRepository.save(ontologyNode));
     }
-    public void importOntologyAsGraph(IRI iri) throws Exception {
+    public void importOntologyAsGraph(IRI iri) throws OntologyCatalogException, OWLOntologyCreationException {
         OWLOntology ontology = OWLManager.createOWLOntologyManager().loadOntology(iri);
         OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
         reasoner = reasonerFactory.createReasoner(ontology);
@@ -149,12 +146,7 @@ public class OntologyCatalogService {
             classNode.setSynonyms(synset.stream().map(s -> new SynonymNode(s)).collect(Collectors.toSet()));
 
             //Import super classes
-            Supplier<Stream<OWLClass>> superClasses = new Supplier<Stream<OWLClass>>() {
-                @Override
-                public Stream<OWLClass> get() {
-                    return reasoner.superClasses(owlClass, true);
-                }
-            };
+            Supplier<Stream<OWLClass>> superClasses = () -> reasoner.superClasses(owlClass, true);
             if (superClasses.get().count() == 0 && !classNode.getName().equals("owl:Thing")) {
                 //Create relation to thing node
                 classNode.getSuperClasses().add(thing);
