@@ -1,13 +1,13 @@
 package br.cin.ufpe.dass.ontologycatalog.model;
 
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Labels;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -21,16 +21,16 @@ public class ClassNode {
     private String name;
 
     @Labels
-    private List<String> labels;
+    private List<String> labels = new ArrayList<>();
 
     @Relationship(type = "hasSynonyms")
-    private Set<SynonymNode> synonyms;
+    private Set<SynonymNode> synonyms = new HashSet<>();
 
     public ClassNode(String name) {
         this.name = name;
     }
 
     @Relationship(type = "isA")
-    private Set<ClassNode> superClasses;
+    private Set<ClassNode> superClasses = new HashSet<>();
 
 }

@@ -2,11 +2,13 @@ package br.cin.ufpe.dass.ontologycatalog.model;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.Singular;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.Labels;
 import org.neo4j.ogm.annotation.NodeEntity;
 import org.neo4j.ogm.annotation.Relationship;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -23,11 +25,12 @@ public class OntologyNode {
     private String version;
 
     @Relationship(type = "hasClasses")
-    private Set<ClassNode> classes;
+    private Set<ClassNode> classes = new HashSet<>();
 
     private String comment;
 
     @Labels
+    @Singular
     private List<String> labels;
 
     public String getUri() {

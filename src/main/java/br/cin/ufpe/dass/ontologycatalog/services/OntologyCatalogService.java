@@ -7,6 +7,8 @@ import br.cin.ufpe.dass.ontologycatalog.repository.ObjectPropertyRepository;
 import br.cin.ufpe.dass.ontologycatalog.repository.OntologyNodeRepository;
 import br.cin.ufpe.dass.ontologycatalog.services.exception.OntologyCatalogException;
 import edu.smu.tspell.wordnet.WordNetDatabase;
+import org.semanticweb.HermiT.Reasoner;
+import org.semanticweb.HermiT.Reasoner.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
@@ -39,6 +41,8 @@ public class OntologyCatalogService {
 
     private final WordNetDatabase wordNetDatabase;
 
+    private OWLDataFactory owlDataFactory;
+
     public OntologyCatalogService(ClassNodeRepository classNodeRepository, OntologyNodeRepository ontologyNodeRepository, ObjectPropertyRepository objectPropertyRepository, DataPropertyRepository dataPropertyRepository, WordNetDatabase wordNetDatabase) {
         this.classNodeRepository = classNodeRepository;
         this.ontologyNodeRepository = ontologyNodeRepository;
@@ -63,8 +67,10 @@ public class OntologyCatalogService {
         return ontologyNodeRepository.findById(ontologyNode.getName()).orElse(ontologyNodeRepository.save(ontologyNode));
     }
     public void importOntologyAsGraph(IRI iri) throws OntologyCatalogException, OWLOntologyCreationException {
-        OWLOntology ontology = OWLManager.createOWLOntologyManager().loadOntology(iri);
-        OWLReasonerFactory reasonerFactory = new StructuralReasonerFactory();
+        OWLOntologyManager owlManager = OWLManager.createOWLOntologyManager();
+        owlDataFactory = owlManager.getOWLDataFactory();
+        OWLOntology ontology = owlManager.loadOntology(iri);
+        OWLReasonerFactory reasonerFactory = new ReasonerFactory();
         reasoner = reasonerFactory.createReasoner(ontology);
         if (!reasoner.isConsistent()) {
             throw new OntologyCatalogException("Ontology is inconsistent");
@@ -77,7 +83,7 @@ public class OntologyCatalogService {
         ontologyNode.setVersion(ontology.getOntologyID().getVersionIRI().toString());
         importOntologyClasses(ontologyNode, ontology);
         importObjectProperties(ontology);
-        importDataProperties(ontologyNode, ontology);
+        importDataProperties(ontology);
         ontologyNodeRepository.save(ontologyNode);
     }
 
@@ -86,19 +92,24 @@ public class OntologyCatalogService {
 
             ObjectPropertyNode propertyNode = new ObjectPropertyNode(extractElementName(owlObjectProperty.toString()));
 
-            reasoner.objectPropertyDomains(owlObjectProperty, true).forEach( domain -> {
-                String domainClassName = extractElementName(domain.toString());
-                ClassNode domainClass = classNodeRepository.findById(domainClassName).orElseThrow(() -> new RuntimeException(String.format("Class %s does not exists to be used as domain", domainClassName)));
-                if (!propertyNode.getDomain().contains(domainClass)) {
-                    propertyNode.getDomain().add(domainClass);
-                }
+            reasoner.objectPropertyDomains(owlObjectProperty, true).forEach( domainExpression -> {
+                //may be a unionOf (multiple)
+                domainExpression.classesInSignature().forEach(domain -> {
+                    String domainClassName = extractElementName(domain.toString());
+                    ClassNode domainClass = classNodeRepository.findById(domainClassName).orElseThrow(() -> new RuntimeException(String.format("Class %s does not exists to be used as domain", domainClassName)));
+                    if (!propertyNode.getDomain().contains(domainClass)) {
+                        propertyNode.getDomain().add(domainClass);
+                    }
+                });
             });
-            reasoner.objectPropertyRanges(owlObjectProperty, true).forEach( range -> {
-                String rangeClassName = extractElementName(range.toString());
-                ClassNode rangeClass = classNodeRepository.findById(rangeClassName).orElseThrow(() -> new RuntimeException(String.format("Class %s does not exists to be used as range", rangeClassName)));
-                if (!propertyNode.getRange().contains(rangeClass)) {
-                    propertyNode.getRange().add(rangeClass);
-                }
+            reasoner.objectPropertyRanges(owlObjectProperty, true).forEach( rangeExpression -> {
+                rangeExpression.classesInSignature().forEach(range -> {
+                    String rangeClassName = extractElementName(range.toString());
+                    ClassNode rangeClass = classNodeRepository.findById(rangeClassName).orElseThrow(() -> new RuntimeException(String.format("Class %s does not exists to be used as range", rangeClassName)));
+                    if (!propertyNode.getRange().contains(rangeClass)) {
+                        propertyNode.getRange().add(rangeClass);
+                    }
+                });
             });
 
             objectPropertyRepository.save(propertyNode);
@@ -109,21 +120,29 @@ public class OntologyCatalogService {
 
         ontology.dataPropertiesInSignature().forEach(owlDataProperty -> {
 
+            if (owlDataProperty == null) {
+                return;
+            }
+
             DataPropertyNode propertyNode = new DataPropertyNode(extractElementName(owlDataProperty.toString()));
 
-            reasoner.dataPropertyDomains(owlDataProperty, true).forEach( domain -> {
-                String domainClassName = extractElementName(domain.toString());
-                ClassNode domainClass = classNodeRepository.findById(domainClassName).orElseThrow(() -> new RuntimeException(String.format("Class %s does not exists to be used as domain", domainClassName)));
-                if (!propertyNode.getDomain().contains(domainClass)) {
-                    propertyNode.getDomain().add(domainClass);
-                }
+            ontology.dataPropertyDomainAxioms(owlDataProperty).forEach( dataPropertyDomainAxiom -> {
+                dataPropertyDomainAxiom.getDomain().classesInSignature().forEach(domain -> {
+                    String domainClassName = extractElementName(domain.toString());
+                    ClassNode domainClass = classNodeRepository.findById(domainClassName).orElseThrow(() -> new RuntimeException(String.format("Class %s does not exists to be used as domain", domainClassName)));
+                    if (!propertyNode.getDomain().contains(domainClass)) {
+                        propertyNode.getDomain().add(domainClass);
+                    }
+             });
             });
 
-            ontology.dataPropertyRangeAxioms(owlDataProperty).forEach(dataProperty -> {
-                String range = extractElementName(dataProperty.getRange().toString());
-                if (!propertyNode.getRange().contains(range)) {
-                    propertyNode.getRange().add(range);
-                }
+            ontology.dataPropertyRangeAxioms(owlDataProperty).forEach( owlDataPropertyRangeAxiom -> {
+                owlDataPropertyRangeAxiom.getRange().datatypesInSignature().forEach(type -> {
+                    String range = extractElementName(type.toString());
+                    if (!propertyNode.getRange().contains(range)) {
+                        propertyNode.getRange().add(range);
+                    }
+                });
             });
 
             dataPropertyRepository.save(propertyNode);
@@ -140,26 +159,35 @@ public class OntologyCatalogService {
         }
 
         ontology.classesInSignature().forEach(owlClass -> {
-            ClassNode classNode = new ClassNode();
-            classNode.setName(extractElementName(owlClass.toString()));
-            Set<String> synset = Stream.of(wordNetDatabase.getSynsets(classNode.getName())).flatMap(s -> Stream.of(s.getWordForms())).distinct().collect(Collectors.toSet());;
-            classNode.setSynonyms(synset.stream().map(s -> new SynonymNode(s)).collect(Collectors.toSet()));
+            if (!owlClass.isAnonymous()) {
 
-            //Import super classes
-            Supplier<Stream<OWLClass>> superClasses = () -> reasoner.superClasses(owlClass, true);
-            if (superClasses.get().count() == 0 && !classNode.getName().equals("owl:Thing")) {
-                //Create relation to thing node
-                classNode.getSuperClasses().add(thing);
-            } else {
-                superClasses.get().forEach(superClass -> {
-                    OWLClassExpression parent = superClass.asOWLClass();
-                    String parentString = extractElementName(parent.toString());
-                    ClassNode parentNode = new ClassNode(parentString);
-                    classNode.getSuperClasses().add(parentNode);
-                });
+                ClassNode classNode = new ClassNode();
+                classNode.setName(extractElementName(owlClass.toString()));
+                Set<String> synset = Stream.of(wordNetDatabase.getSynsets(classNode.getName())).flatMap(s -> Stream.of(s.getWordForms())).distinct().collect(Collectors.toSet());
+                ;
+                classNode.setSynonyms(synset.stream().map(s -> new SynonymNode(s)).collect(Collectors.toSet()));
+
+                //Import super classes
+                Supplier<Stream<OWLClass>> superClasses = () -> reasoner.superClasses(owlClass, true);
+                if (superClasses.get().count() == 0 && !classNode.getName().equals("owl:Thing")) {
+                    //Create relation to thing node
+                    classNode.getSuperClasses().add(thing);
+                } else {
+                    superClasses.get().forEach(superClass -> {
+                        superClass.classesInSignature().forEach(classInSignature -> {
+                            if (!classInSignature.isAnonymous()) {
+                                OWLClassExpression parent = classInSignature.asOWLClass();
+                                String parentString = extractElementName(parent.toString());
+                                ClassNode parentNode = new ClassNode(parentString);
+                                classNode.getSuperClasses().add(parentNode);
+                            }
+                        });
+                    });
+                }
+
+                getOrCreateClassNodeWithUniqueFactory(classNode);
+
             }
-
-            getOrCreateClassNodeWithUniqueFactory(classNode);
 
         });
     }
