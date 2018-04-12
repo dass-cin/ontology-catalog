@@ -21,6 +21,8 @@ import java.util.Set;
 public class ObjectPropertyNode {
 
     @Id
+    private String uri;
+
     private String name;
 
     //More than one range is a unionOf
@@ -35,6 +37,11 @@ public class ObjectPropertyNode {
     private List<String> labels = new ArrayList<>();
 
     public ObjectPropertyNode(String name) {
+        this.name = name;
+    }
+
+    public ObjectPropertyNode(String uri, String name) {
+        this.uri = uri;
         this.name = name;
     }
 }

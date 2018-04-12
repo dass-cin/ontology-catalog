@@ -18,6 +18,8 @@ import java.util.Set;
 public class DataPropertyNode {
 
     @Id
+    private String uri;
+
     private String name;
 
     //More than one domain is a unionOf
@@ -31,7 +33,8 @@ public class DataPropertyNode {
     @Labels
     private List<String> labels = new ArrayList<>();
 
-    public DataPropertyNode(String name) {
+    public DataPropertyNode(String uri, String name) {
+        this.uri = uri;
         this.name = name;
     }
 }
