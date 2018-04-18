@@ -15,11 +15,16 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.util.MultiValueMap;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.*;
 
 /***
  * @author diego
@@ -28,6 +33,8 @@ import java.util.stream.Stream;
  */
 @Service
 public class OntologyCatalogService {
+
+    private static String thingURI = "http://www.w3.org/2002/07/owl";
 
     private  final ClassNodeRepository classNodeRepository;
 
@@ -46,6 +53,14 @@ public class OntologyCatalogService {
         this.objectPropertyRepository = objectPropertyRepository;
         this.dataPropertyRepository = dataPropertyRepository;
         this.wordNetDatabase = wordNetDatabase;
+    }
+
+    public Set<String> getOntologyUris() {
+        return classNodeRepository.getDistinctURIs().filter(u -> !u.equals(thingURI)).collect(toSet());
+    }
+
+    public Set<String> getOntologyNames() {
+        return classNodeRepository.getDistinctURIs().filter(u -> !u.equals(thingURI)).map(u -> u.replace("http://","")).collect(toSet());
     }
 
     public ClassNode getOrCreateClassNodeWithUniqueFactory(ClassNode classNode) {
@@ -75,9 +90,9 @@ public class OntologyCatalogService {
                 ClassNode classNode = new ClassNode();
                 classNode.setName(extractElementName(owlClass.toString()));
                 classNode.setUri(owlClass.getIRI().toURI().toString());
-                Set<String> synset = Stream.of(wordNetDatabase.getSynsets(classNode.getName())).flatMap(s -> Stream.of(s.getWordForms())).distinct().collect(Collectors.toSet());
+                Set<String> synset = Stream.of(wordNetDatabase.getSynsets(classNode.getName())).flatMap(s -> Stream.of(s.getWordForms())).distinct().collect(toSet());
                 ;
-                classNode.setSynonyms(synset.stream().map(s -> new SynonymNode(s)).collect(Collectors.toSet()));
+                classNode.setSynonyms(synset.stream().map(s -> new SynonymNode(s)).collect(toSet()));
 
                 //Import super classes
                 Supplier<Stream<OWLClass>> superClasses = () -> reasoner.superClasses(owlClass, true);
@@ -180,4 +195,18 @@ public class OntologyCatalogService {
         return fullname;
     }
 
+    public List<ClassNode> listClassesByOntologyName(String ontologyName) {
+        String parametizedOntologyName = String.format(".*%s.*", ontologyName);
+        return classNodeRepository.listAllByOntologyName(parametizedOntologyName).collect(toList());
+    }
+
+    public Iterable<Map<String, ClassNode>> listSuperClassesByOntologyName(String ontologyName, String className) {
+        String parametizedOntologyName = String.format(".*%s.*", ontologyName);
+        return classNodeRepository.listSuperClassesByOntologyName(parametizedOntologyName, className);
+    }
+
+    public Iterable<Map<String, ClassNode>> listSuperClassesByOntologyName(String ontologyName) {
+        String parametizedOntologyName = String.format(".*%s.*", ontologyName);
+        return classNodeRepository.listSuperClassesByOntologyName(parametizedOntologyName);
+    }
 }

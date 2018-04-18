@@ -33,13 +33,13 @@ public class OntologyCatalogApplication {
 		SpringApplication.run(OntologyCatalogApplication.class, args);
 	}
 
-	@Bean
-	CommandLineRunner run(OntologyCatalogService ontologyCatalogService) {
-		return args -> {
-			IRI sourceIri = IRI.create(URI.create("file:///Users/diego/ontologies/conference/cmt.owl"));
-			ontologyCatalogService.importOntologyAsGraph(sourceIri);
-		};
-	}
+//	@Bean
+//	CommandLineRunner run(OntologyCatalogService ontologyCatalogService) {
+//		return args -> {
+//			IRI sourceIri = IRI.create(URI.create("file:///Users/diego/ontologies/conference/cmt.owl"));
+//			ontologyCatalogService.importOntologyAsGraph(sourceIri);
+//		};
+//	}
 
 	@Bean
 	public WordNetDatabase wordNetDatabase() {
