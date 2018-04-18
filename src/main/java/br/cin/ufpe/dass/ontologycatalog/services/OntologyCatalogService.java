@@ -200,13 +200,13 @@ public class OntologyCatalogService {
         return classNodeRepository.listAllByOntologyName(parametizedOntologyName).collect(toList());
     }
 
-    public Iterable<Map<String, ClassNode>> listSuperClassesByOntologyName(String ontologyName, String className) {
-        String parametizedOntologyName = String.format(".*%s.*", ontologyName);
-        return classNodeRepository.listSuperClassesByOntologyName(parametizedOntologyName, className);
+    public List<DataPropertyNode> listDataPropertiesByOntologyName(String ontologyName) {
+        String parametizedDataProperty = String.format(".*%s.*", ontologyName);
+        return dataPropertyRepository.listAllByOntologyName(parametizedDataProperty).collect(toList());
     }
 
-    public Iterable<Map<String, ClassNode>> listSuperClassesByOntologyName(String ontologyName) {
-        String parametizedOntologyName = String.format(".*%s.*", ontologyName);
-        return classNodeRepository.listSuperClassesByOntologyName(parametizedOntologyName);
+    public List<ObjectPropertyNode> listObjectPropertiesByOntologyName(String ontologyName) {
+        String parametizedDataProperty = String.format(".*%s.*", ontologyName);
+        return objectPropertyRepository.listAllByOntologyName(parametizedDataProperty).collect(toList());
     }
 }

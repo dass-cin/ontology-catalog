@@ -1,8 +1,8 @@
 package br.cin.ufpe.dass.ontologycatalog.resources;
 
-import br.cin.ufpe.dass.ontologycatalog.OntologyCatalogApplication;
 import br.cin.ufpe.dass.ontologycatalog.model.ClassNode;
 import br.cin.ufpe.dass.ontologycatalog.model.DataPropertyNode;
+import br.cin.ufpe.dass.ontologycatalog.model.ObjectPropertyNode;
 import br.cin.ufpe.dass.ontologycatalog.services.OntologyCatalogService;
 import br.cin.ufpe.dass.ontologycatalog.services.exception.OntologyCatalogException;
 import org.semanticweb.owlapi.model.IRI;
@@ -11,15 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.MultiValueMap;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/")
@@ -59,15 +54,14 @@ public class OntologyResource {
         return ResponseEntity.ok().body(ontologyCatalogService.listClassesByOntologyName(ontologyName));
     }
 
-    @GetMapping("ontologies/super-classes/{ontology}/{class}")
-    public ResponseEntity<Iterable<Map<String, ClassNode>>> getOntologySuperClasses(@PathVariable("ontology") String ontologyName,
-                                                                                       @PathVariable("class") String className) {
-        return ResponseEntity.ok().body(ontologyCatalogService.listSuperClassesByOntologyName(ontologyName, className));
+    @GetMapping("ontologies/data-properties/{ontology}")
+    public ResponseEntity<List<DataPropertyNode>> getDataProperties(@PathVariable("ontology") String ontologyName) {
+        return ResponseEntity.ok().body(ontologyCatalogService.listDataPropertiesByOntologyName(ontologyName));
     }
 
-    @GetMapping("ontologies/super-classes/{ontology}")
-    public ResponseEntity<Iterable<Map<String, ClassNode>>> getOntologySuperClasses(@PathVariable("ontology") String ontologyName) {
-        return ResponseEntity.ok().body(ontologyCatalogService.listSuperClassesByOntologyName(ontologyName));
+    @GetMapping("ontologies/object-properties/{ontology}")
+    public ResponseEntity<List<ObjectPropertyNode>> getObjectProperties(@PathVariable("ontology") String ontologyName) {
+        return ResponseEntity.ok().body(ontologyCatalogService.listObjectPropertiesByOntologyName(ontologyName));
     }
 
 }
