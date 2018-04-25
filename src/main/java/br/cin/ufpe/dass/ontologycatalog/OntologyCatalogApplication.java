@@ -47,7 +47,7 @@ public class OntologyCatalogApplication {
 
 		WordNetDatabase wordNet = null;
 
-		String wordnetdir = applicationConfig.getWordnetDir();
+		String wordnetdir = applicationConfig.getInitialization().getWordnetDir();
 
 		System.setProperty("wordnet.database.dir", wordnetdir);
 		// Instantiate wordnet.

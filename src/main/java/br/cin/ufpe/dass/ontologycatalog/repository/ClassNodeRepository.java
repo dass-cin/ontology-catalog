@@ -10,12 +10,11 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
-public interface ClassNodeRepository extends CrudRepository<ClassNode, String> {
+public interface ClassNodeRepository extends CrudRepository<ClassNode, String>, ClassNodeRepositoryCustom {
 
     @Query("MATCH (c:ClassNode) RETURN distinct(split(c.uri,'#')[0])")
     Stream<String> getDistinctURIs();
 
     @Query("MATCH (c:ClassNode)-[p]-(c1:ClassNode) WHERE c.uri =~{ontologyName} RETURN c,p,c1 ORDER BY c.name ASC")
     Stream<ClassNode> listAllByOntologyName(@Param("ontologyName") String ontologyName);
-
 }

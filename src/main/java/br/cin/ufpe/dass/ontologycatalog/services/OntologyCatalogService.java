@@ -1,9 +1,10 @@
 package br.cin.ufpe.dass.ontologycatalog.services;
 
+import br.cin.ufpe.dass.ontologycatalog.components.TextNormalizer;
 import br.cin.ufpe.dass.ontologycatalog.model.ClassNode;
 import br.cin.ufpe.dass.ontologycatalog.model.DataPropertyNode;
 import br.cin.ufpe.dass.ontologycatalog.model.ObjectPropertyNode;
-import br.cin.ufpe.dass.ontologycatalog.model.SynonymNode;
+import br.cin.ufpe.dass.ontologycatalog.model.KeywordNode;
 import br.cin.ufpe.dass.ontologycatalog.repository.ClassNodeRepository;
 import br.cin.ufpe.dass.ontologycatalog.repository.DataPropertyRepository;
 import br.cin.ufpe.dass.ontologycatalog.repository.ObjectPropertyRepository;
@@ -15,7 +16,6 @@ import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.util.MultiValueMap;
 
 import java.util.List;
 import java.util.Map;
@@ -48,11 +48,14 @@ public class OntologyCatalogService {
 
     private OWLDataFactory owlDataFactory;
 
-    public OntologyCatalogService(ClassNodeRepository classNodeRepository, ObjectPropertyRepository objectPropertyRepository, DataPropertyRepository dataPropertyRepository, WordNetDatabase wordNetDatabase) {
+    private final TextNormalizer textNormalizer;
+
+    public OntologyCatalogService(ClassNodeRepository classNodeRepository, ObjectPropertyRepository objectPropertyRepository, DataPropertyRepository dataPropertyRepository, WordNetDatabase wordNetDatabase, TextNormalizer textNormalizer) {
         this.classNodeRepository = classNodeRepository;
         this.objectPropertyRepository = objectPropertyRepository;
         this.dataPropertyRepository = dataPropertyRepository;
         this.wordNetDatabase = wordNetDatabase;
+        this.textNormalizer = textNormalizer;
     }
 
     public Set<String> getOntologyUris() {
@@ -77,12 +80,12 @@ public class OntologyCatalogService {
             throw new OntologyCatalogException("Ontology is inconsistent");
         }
         reasoner.precomputeInferences();
-        importOntologyClasses(iri, ontology);
+        importOntologyClasses(ontology);
         importObjectProperties(ontology);
         importDataProperties(ontology);
     }
 
-    public void importOntologyClasses(IRI iri, OWLOntology ontology) {
+    public void importOntologyClasses(OWLOntology ontology) {
 
         ontology.classesInSignature().forEach(owlClass -> {
             if (!owlClass.isAnonymous()) {
@@ -90,9 +93,9 @@ public class OntologyCatalogService {
                 ClassNode classNode = new ClassNode();
                 classNode.setName(extractElementName(owlClass.toString()));
                 classNode.setUri(owlClass.getIRI().toURI().toString());
-                Set<String> synset = Stream.of(wordNetDatabase.getSynsets(classNode.getName())).flatMap(s -> Stream.of(s.getWordForms())).distinct().collect(toSet());
-                ;
-                classNode.setSynonyms(synset.stream().map(s -> new SynonymNode(s)).collect(toSet()));
+                Set<String> synset = Stream.of(wordNetDatabase.getSynsets(classNode.getName())).flatMap(s -> Stream.of(s.getWordForms())).distinct().filter(s -> !s.equals(classNode.getName())).collect(toSet());
+                classNode.setKeywords(synset.stream().map(s -> new KeywordNode(s)).collect(toSet()));
+                classNode.getKeywords().add(new KeywordNode(textNormalizer.advancedNormalizing(classNode.getName())));
 
                 //Import super classes
                 Supplier<Stream<OWLClass>> superClasses = () -> reasoner.superClasses(owlClass, true);
@@ -102,8 +105,11 @@ public class OntologyCatalogService {
                             OWLClassExpression parent = classInSignature.asOWLClass();
                             String parentString = extractElementName(parent.toString());
                             ClassNode parentNode = new ClassNode(parentString);
+                            Set<String> parentSynset = Stream.of(wordNetDatabase.getSynsets(parentNode.getName())).flatMap(s -> Stream.of(s.getWordForms())).distinct().filter(s -> !s.equals(parentNode.getName())).collect(toSet());
+                            parentNode.setKeywords(parentSynset.stream().map(s -> new KeywordNode(s)).collect(toSet()));
                             parentNode.setUri(classInSignature.getIRI().toURI().toString());
                             classNode.getSuperClasses().add(parentNode);
+                            classNode.getKeywords().add(new KeywordNode(textNormalizer.advancedNormalizing(parentNode.getName())));
                         }
                     });
                 });
@@ -120,6 +126,9 @@ public class OntologyCatalogService {
         ontology.objectPropertiesInSignature().forEach(owlObjectProperty -> {
 
             ObjectPropertyNode propertyNode = objectPropertyRepository.findById(owlObjectProperty.getIRI().toURI().toString()).orElse(new ObjectPropertyNode(owlObjectProperty.getIRI().toURI().toString(), extractElementName(owlObjectProperty.toString())));
+            Set<String> synset = Stream.of(wordNetDatabase.getSynsets(propertyNode.getName())).flatMap(s -> Stream.of(s.getWordForms())).distinct().filter(s -> !s.equals(propertyNode.getName())).collect(toSet());
+            propertyNode.setKeywords(synset.stream().map(s -> new KeywordNode(s)).collect(toSet()));
+            propertyNode.getKeywords().add(new KeywordNode(textNormalizer.advancedNormalizing(propertyNode.getName())));
 
             reasoner.objectPropertyDomains(owlObjectProperty, true).forEach( domainExpression -> {
                 //may be a unionOf (multiple)
@@ -155,6 +164,9 @@ public class OntologyCatalogService {
 
             String uri = owlDataProperty.getIRI().toURI().toString();
             DataPropertyNode propertyNode = dataPropertyRepository.findById(uri).orElse(new DataPropertyNode(uri, extractElementName(owlDataProperty.toString())));
+            Set<String> synset = Stream.of(wordNetDatabase.getSynsets(propertyNode.getName())).flatMap(s -> Stream.of(s.getWordForms())).distinct().filter(s -> !s.equals(propertyNode.getName())).collect(toSet());
+            propertyNode.setKeywords(synset.stream().map(s -> new KeywordNode(s)).collect(toSet()));
+            propertyNode.getKeywords().add(new KeywordNode(textNormalizer.advancedNormalizing(propertyNode.getName())));
 
             ontology.dataPropertyDomainAxioms(owlDataProperty).forEach( dataPropertyDomainAxiom -> {
                 dataPropertyDomainAxiom.getDomain().classesInSignature().forEach(domain -> {
@@ -208,5 +220,9 @@ public class OntologyCatalogService {
     public List<ObjectPropertyNode> listObjectPropertiesByOntologyName(String ontologyName) {
         String parametizedDataProperty = String.format(".*%s.*", ontologyName);
         return objectPropertyRepository.listAllByOntologyName(parametizedDataProperty).collect(toList());
+    }
+
+    public Set<Map<String, Object>> getQueryResult(String cypherQuery) {
+        return classNodeRepository.getQueryResult(cypherQuery).collect(Collectors.toSet());
     }
 }

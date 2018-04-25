@@ -1,10 +1,7 @@
 package br.cin.ufpe.dass.ontologycatalog.model;
 
 import lombok.*;
-import org.neo4j.ogm.annotation.Id;
-import org.neo4j.ogm.annotation.Labels;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Relationship;
+import org.neo4j.ogm.annotation.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -15,7 +12,7 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-public class DataPropertyNode {
+public class DataPropertyNode implements OntologyElement  {
 
     @Id
     private String uri;
@@ -30,8 +27,8 @@ public class DataPropertyNode {
     @Relationship(type = "range")
     private Set<String> range = new HashSet<>();
 
-    @Labels
-    private List<String> labels = new ArrayList<>();
+    @Relationship(type = "hasKeywords")
+    private Set<KeywordNode> keywords = new HashSet<>();
 
     public DataPropertyNode(String uri, String name) {
         this.uri = uri;

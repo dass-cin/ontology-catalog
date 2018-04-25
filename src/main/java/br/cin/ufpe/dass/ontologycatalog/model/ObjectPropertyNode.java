@@ -4,10 +4,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.Singular;
-import org.neo4j.ogm.annotation.Id;
-import org.neo4j.ogm.annotation.Labels;
-import org.neo4j.ogm.annotation.NodeEntity;
-import org.neo4j.ogm.annotation.Relationship;
+import org.neo4j.ogm.annotation.*;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -18,7 +15,7 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ObjectPropertyNode {
+public class ObjectPropertyNode implements OntologyElement {
 
     @Id
     private String uri;
@@ -33,15 +30,12 @@ public class ObjectPropertyNode {
     @Relationship(type = "domain")
     private Set<ClassNode> domain = new HashSet<>();
 
-    @Labels
-    private List<String> labels = new ArrayList<>();
-
-    public ObjectPropertyNode(String name) {
-        this.name = name;
-    }
+    @Relationship(type = "hasKeywords")
+    private Set<KeywordNode> keywords = new HashSet<>();
 
     public ObjectPropertyNode(String uri, String name) {
         this.uri = uri;
         this.name = name;
     }
+
 }

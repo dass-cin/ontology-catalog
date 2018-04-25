@@ -31,7 +31,6 @@ public class OntologyResource {
     @PostMapping("ontologies/import")
     public ResponseEntity<?> importOntologyFromuri(@RequestBody String uri) {
         ResponseEntity<?> response = null;
-        //uri: "file:///Users/diego/ontologies/conference/cmt.owl"
         IRI sourceIri = IRI.create(URI.create(uri));
         try {
             ontologyCatalogService.importOntologyAsGraph(sourceIri);
@@ -44,7 +43,7 @@ public class OntologyResource {
         return response;
     }
 
-    @GetMapping("ontologies/")
+    @GetMapping("ontologies")
     public ResponseEntity<?> getOntologies() {
         return ResponseEntity.ok().body(ontologyCatalogService.getOntologyNames());
     }
@@ -63,5 +62,11 @@ public class OntologyResource {
     public ResponseEntity<List<ObjectPropertyNode>> getObjectProperties(@PathVariable("ontology") String ontologyName) {
         return ResponseEntity.ok().body(ontologyCatalogService.listObjectPropertiesByOntologyName(ontologyName));
     }
+
+    @PutMapping("ontologies/query")
+    public ResponseEntity<?> getQueryResult(@RequestBody String cypherQuery) {
+        return ResponseEntity.ok().body(ontologyCatalogService.getQueryResult(cypherQuery));
+    }
+
 
 }

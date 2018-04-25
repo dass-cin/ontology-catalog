@@ -10,12 +10,12 @@ import org.neo4j.ogm.annotation.NodeEntity;
 @Getter
 @Setter
 @NoArgsConstructor
-public class SynonymNode {
+public class KeywordNode {
 
     @Id
-    private String name;
+    private String keyword;
 
-    public SynonymNode(String name) {
-        this.name = name;
+    public KeywordNode(String keyword) {
+        this.keyword = keyword;
     }
 }

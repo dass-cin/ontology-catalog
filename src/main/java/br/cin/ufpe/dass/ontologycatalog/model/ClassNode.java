@@ -12,18 +12,15 @@ import java.util.Set;
 @Getter
 @Setter
 @NoArgsConstructor
-public class ClassNode {
+public class ClassNode implements OntologyElement {
 
     @Id
     private String uri;
 
     private String name;
 
-    @Labels
-    private List<String> labels = new ArrayList<>();
-
-    @Relationship(type = "hasSynonyms")
-    private Set<SynonymNode> synonyms = new HashSet<>();
+    @Relationship(type = "hasKeywords")
+    private Set<KeywordNode> keywords = new HashSet<>();
 
     public ClassNode(String name) {
         this.name = name;
