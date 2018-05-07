@@ -9,6 +9,6 @@ import java.util.stream.Stream;
 
 public interface ObjectPropertyRepository extends CrudRepository<ObjectPropertyNode, String> {
 
-    @Query("MATCH (p1:ObjectPropertyNode)-[r]-(p2:ObjectPropertyNode) WHERE p1.uri =~{ontologyName} RETURN p1,r,p2 ORDER BY p1.name ASC")
+    @Query("MATCH (p1:ObjectPropertyNode)-[r]-(node) WHERE p1.uri =~{ontologyName} RETURN p1,r,node ORDER BY p1.name ASC")
     Stream<ObjectPropertyNode> listAllByOntologyName(@Param("ontologyName") String ontologyName);
 }

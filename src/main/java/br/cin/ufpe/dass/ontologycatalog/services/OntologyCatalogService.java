@@ -1,10 +1,7 @@
 package br.cin.ufpe.dass.ontologycatalog.services;
 
 import br.cin.ufpe.dass.ontologycatalog.components.TextNormalizer;
-import br.cin.ufpe.dass.ontologycatalog.model.ClassNode;
-import br.cin.ufpe.dass.ontologycatalog.model.DataPropertyNode;
-import br.cin.ufpe.dass.ontologycatalog.model.ObjectPropertyNode;
-import br.cin.ufpe.dass.ontologycatalog.model.KeywordNode;
+import br.cin.ufpe.dass.ontologycatalog.model.*;
 import br.cin.ufpe.dass.ontologycatalog.repository.ClassNodeRepository;
 import br.cin.ufpe.dass.ontologycatalog.repository.DataPropertyRepository;
 import br.cin.ufpe.dass.ontologycatalog.repository.ObjectPropertyRepository;
@@ -15,6 +12,8 @@ import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.reasoner.OWLReasoner;
 import org.semanticweb.owlapi.reasoner.OWLReasonerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -33,6 +32,8 @@ import static java.util.stream.Collectors.*;
  */
 @Service
 public class OntologyCatalogService {
+
+    private Logger log = LoggerFactory.getLogger(OntologyCatalogService.class);
 
     private static String thingURI = "http://www.w3.org/2002/07/owl";
 
@@ -71,6 +72,7 @@ public class OntologyCatalogService {
     }
 
     public void importOntologyAsGraph(IRI iri) throws OntologyCatalogException, OWLOntologyCreationException {
+        log.info("Importing {} ontology as graph ", iri);
         OWLOntologyManager owlManager = OWLManager.createOWLOntologyManager();
         owlDataFactory = owlManager.getOWLDataFactory();
         OWLOntology ontology = owlManager.loadOntology(iri);
@@ -86,7 +88,7 @@ public class OntologyCatalogService {
     }
 
     public void importOntologyClasses(OWLOntology ontology) {
-
+        log.info("Importing ontology classes");
         ontology.classesInSignature().forEach(owlClass -> {
             if (!owlClass.isAnonymous()) {
 
@@ -123,6 +125,7 @@ public class OntologyCatalogService {
     }
 
     public void importObjectProperties(OWLOntology ontology) {
+        log.info("Importing ontology object properties");
         ontology.objectPropertiesInSignature().forEach(owlObjectProperty -> {
 
             ObjectPropertyNode propertyNode = objectPropertyRepository.findById(owlObjectProperty.getIRI().toURI().toString()).orElse(new ObjectPropertyNode(owlObjectProperty.getIRI().toURI().toString(), extractElementName(owlObjectProperty.toString())));
@@ -155,6 +158,7 @@ public class OntologyCatalogService {
     }
 
     public void importDataProperties(OWLOntology ontology) {
+        log.info("Importing ontology data properties");
 
         ontology.dataPropertiesInSignature().forEach(owlDataProperty -> {
 
@@ -222,7 +226,7 @@ public class OntologyCatalogService {
         return objectPropertyRepository.listAllByOntologyName(parametizedDataProperty).collect(toList());
     }
 
-    public Set<Map<String, Object>> getQueryResult(String cypherQuery) {
-        return classNodeRepository.getQueryResult(cypherQuery).collect(Collectors.toSet());
+    public List<Map<String, Object>> getQueryResult(String cypherQuery) {
+        return classNodeRepository.getQueryResult(cypherQuery).collect(Collectors.toList());
     }
 }

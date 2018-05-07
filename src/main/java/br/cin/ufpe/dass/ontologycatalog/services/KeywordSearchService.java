@@ -3,6 +3,8 @@ package br.cin.ufpe.dass.ontologycatalog.services;
 import br.cin.ufpe.dass.ontologycatalog.model.OntologyElement;
 import org.neo4j.ogm.model.Result;
 import org.neo4j.ogm.session.Session;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -10,6 +12,8 @@ import java.util.Map;
 
 @Service
 public class KeywordSearchService {
+
+    private Logger log = LoggerFactory.getLogger(KeywordSearchService.class);
 
     private final Session session;
 
@@ -22,7 +26,6 @@ public class KeywordSearchService {
         return this.searchNodeByKeyWord(null, keyword);
     }
 
-    //retorna nó
     public OntologyElement searchNodeByKeyWord(String ontology, String keyword) {
 
         Map<String, OntologyElement> parameters = new HashMap<>();
@@ -35,6 +38,7 @@ public class KeywordSearchService {
             query += String.format(" AND node.uri =~'.*%s.*' ", ontology);
         }
         query +=  "WITH count(distinct(node)) as total RETURN total";
+        log.info("Step 1: Executing count query = \n {}", query);
         Result result = session.query(query, parameters, true);
         long totalNodesWithKeyword = (long)result.iterator().next().get("total");
 
@@ -53,6 +57,7 @@ public class KeywordSearchService {
                     "  RETURN nodeId, centrality \n" +
                     "  ORDER BY centrality DESC LIMIT 1";
 
+            log.info("Step 2: More than one result -> Calculating betweeness centrality = \n {}", query);
 
             result = session.query(query, parameters, true);
             Long nodeId = (long)result.iterator().next().get("nodeId");
@@ -71,6 +76,7 @@ public class KeywordSearchService {
             }
             query +=
                     "RETURN distinct(node)";
+            log.info("Step 2: Just one result, returning the first = \n {}", query);
             result = session.query(query, parameters, true);
             if ((result.iterator().hasNext())) {
                 selectedNode = (OntologyElement) result.iterator().next().get("node");
