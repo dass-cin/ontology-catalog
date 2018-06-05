@@ -3,6 +3,7 @@ import br.cin.ufpe.dass.ontologycatalog.model.ClassNode;
 import br.cin.ufpe.dass.ontologycatalog.model.DataPropertyNode;
 import br.cin.ufpe.dass.ontologycatalog.model.OntologyElement;
 import br.cin.ufpe.dass.ontologycatalog.services.KeywordSearchService;
+import edu.smu.tspell.wordnet.WordNetDatabase;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.MockitoAnnotations;
@@ -25,6 +26,9 @@ public class KeywordSearchTest {
 
     @Inject
     private KeywordSearchService keywordSearchService;
+
+    @Inject
+    private WordNetDatabase wordNetDatabase;
 
     @Inject
     private Session session;
@@ -72,7 +76,6 @@ public class KeywordSearchTest {
         assertTrue(subjectArea instanceof ClassNode);
         assertTrue(((ClassNode)subjectArea).getName().equals("SubjectArea"));
     }
-
 
 }
 

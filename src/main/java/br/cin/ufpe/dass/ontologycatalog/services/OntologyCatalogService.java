@@ -18,9 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -93,8 +91,8 @@ public class OntologyCatalogService {
         }
         reasoner.precomputeInferences();
         importOntologyClasses(ontology);
-        importDataProperties(ontology);
         importObjectProperties(ontology);
+        importDataProperties(ontology);
     }
 
     public void importOntologyClasses(OWLOntology ontology) {
@@ -105,7 +103,14 @@ public class OntologyCatalogService {
                 ClassNode classNode = new ClassNode();
                 classNode.setName(extractElementName(owlClass.toString()));
                 classNode.setUri(owlClass.getIRI().toURI().toString());
-                Set<String> synset = Stream.of(wordNetDatabase.getSynsets(classNode.getName())).flatMap(s -> Stream.of(s.getWordForms())).distinct().filter(s -> !s.equals(classNode.getName())).collect(toSet());
+                String[] pieces = classNode.getName().split("(?=\\p{Upper})");
+                Set<String> synset = new HashSet<>();
+                String className = classNode.getName();
+                if (pieces.length > 1) {
+                    className = Arrays.stream(pieces).reduce((x,y) -> x + " " + y).orElse(classNode.getName());
+                }
+                synset.addAll(Stream.of(wordNetDatabase.getSynsets(className)).flatMap(s -> Stream.of(s.getWordForms())).distinct().filter(s -> !s.equals(classNode.getName())).collect(toSet()));
+
                 classNode.setKeywords(synset.stream().map(s -> new KeywordNode(s)).collect(toSet()));
                 classNode.getKeywords().add(new KeywordNode(textNormalizer.advancedNormalizing(classNode.getName())));
 
@@ -117,7 +122,13 @@ public class OntologyCatalogService {
                             OWLClassExpression parent = classInSignature.asOWLClass();
                             String parentString = extractElementName(parent.toString());
                             ClassNode parentNode = new ClassNode(parentString);
-                            Set<String> parentSynset = Stream.of(wordNetDatabase.getSynsets(parentNode.getName())).flatMap(s -> Stream.of(s.getWordForms())).distinct().filter(s -> !s.equals(parentNode.getName())).collect(toSet());
+                            String[] parentPieces = parentNode.getName().split("(?=\\p{Upper})");
+                            Set<String> parentSynset = new HashSet<>();
+                            String parentClassName = parentNode.getName();
+                            if (pieces.length > 1) {
+                                parentClassName = Arrays.stream(pieces).reduce((x,y) -> x + " " + y).orElse(parentNode.getName());
+                            }
+                            parentSynset.addAll(Stream.of(wordNetDatabase.getSynsets(parentClassName)).flatMap(s -> Stream.of(s.getWordForms())).distinct().filter(s -> !s.equals(classNode.getName())).collect(toSet()));
                             parentNode.setKeywords(parentSynset.stream().map(s -> new KeywordNode(s)).collect(toSet()));
                             parentNode.setUri(classInSignature.getIRI().toURI().toString());
                             classNode.getSuperClasses().add(parentNode);

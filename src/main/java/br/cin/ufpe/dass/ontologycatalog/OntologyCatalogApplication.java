@@ -33,13 +33,25 @@ public class OntologyCatalogApplication {
 		SpringApplication.run(OntologyCatalogApplication.class, args);
 	}
 
-//	@Bean
-//	CommandLineRunner run(OntologyCatalogService ontologyCatalogService) {
-//		return args -> {
-//			IRI sourceIri = IRI.create(URI.create("file:///Users/diegopessoa/Projects/phd/ontologies/conference/cmt.owl"));
-//			ontologyCatalogService.importOntologyAsGraph(sourceIri);
-//		};
-//	}
+	@Bean
+	CommandLineRunner run(OntologyCatalogService ontologyCatalogService) {
+		return args -> {
+			if (ontologyCatalogService.getOntologyUris().isEmpty()) {
+				IRI sourceIri = IRI.create(URI.create("file:///Users/diegopessoa/Projects/phd/ontologies/conference/cmt.owl"));
+				ontologyCatalogService.importOntologyAsGraph(sourceIri);
+				sourceIri = IRI.create(URI.create("file:///Users/diegopessoa/Projects/phd/ontologies/conference/Conference.owl"));
+				ontologyCatalogService.importOntologyAsGraph(sourceIri);
+				sourceIri = IRI.create(URI.create("file:///Users/diegopessoa/Projects/phd/ontologies/conference/confOf.owl"));
+				ontologyCatalogService.importOntologyAsGraph(sourceIri);
+				sourceIri = IRI.create(URI.create("file:///Users/diegopessoa/Projects/phd/ontologies/conference/edas.owl"));
+				ontologyCatalogService.importOntologyAsGraph(sourceIri);
+				sourceIri = IRI.create(URI.create("file:///Users/diegopessoa/Projects/phd/ontologies/conference/iasted.owl"));
+				ontologyCatalogService.importOntologyAsGraph(sourceIri);
+				sourceIri = IRI.create(URI.create("file:///Users/diegopessoa/Projects/phd/ontologies/conference/sigkdd.owl"));
+				ontologyCatalogService.importOntologyAsGraph(sourceIri);
+			}
+		};
+	}
 
 	@Bean
 	public WordNetDatabase wordNetDatabase() {
