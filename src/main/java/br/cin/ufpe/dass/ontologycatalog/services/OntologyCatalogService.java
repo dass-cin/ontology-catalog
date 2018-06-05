@@ -5,8 +5,10 @@ import br.cin.ufpe.dass.ontologycatalog.model.*;
 import br.cin.ufpe.dass.ontologycatalog.repository.ClassNodeRepository;
 import br.cin.ufpe.dass.ontologycatalog.repository.DataPropertyRepository;
 import br.cin.ufpe.dass.ontologycatalog.repository.ObjectPropertyRepository;
+import br.cin.ufpe.dass.ontologycatalog.services.exception.OntologyAlreadyImported;
 import br.cin.ufpe.dass.ontologycatalog.services.exception.OntologyCatalogException;
 import edu.smu.tspell.wordnet.WordNetDatabase;
+import org.apache.commons.io.FilenameUtils;
 import org.semanticweb.HermiT.Reasoner.ReasonerFactory;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
@@ -71,7 +73,15 @@ public class OntologyCatalogService {
         return classNodeRepository.findById(classNode.getUri()).orElse(classNodeRepository.save(classNode));
     }
 
-    public void importOntologyAsGraph(IRI iri) throws OntologyCatalogException, OWLOntologyCreationException {
+    public void importOntologyAsGraph(IRI iri) throws OntologyCatalogException, OWLOntologyCreationException, OntologyAlreadyImported {
+
+        String newOntologyUri = FilenameUtils.getName(iri.toURI().toString()).replace("."+FilenameUtils.getExtension(iri.toURI().toString()), "");
+
+//        if (this.getOntologyUris().contains("http://"+ newOntologyUri)) {
+//            throw new OntologyAlreadyImported(String.format("Ontology [%s] already imported", newOntologyUri));
+//        }
+
+
         log.info("Importing {} ontology as graph ", iri);
         OWLOntologyManager owlManager = OWLManager.createOWLOntologyManager();
         owlDataFactory = owlManager.getOWLDataFactory();
@@ -83,8 +93,8 @@ public class OntologyCatalogService {
         }
         reasoner.precomputeInferences();
         importOntologyClasses(ontology);
-        importObjectProperties(ontology);
         importDataProperties(ontology);
+        importObjectProperties(ontology);
     }
 
     public void importOntologyClasses(OWLOntology ontology) {

@@ -4,6 +4,7 @@ import br.cin.ufpe.dass.ontologycatalog.model.ClassNode;
 import br.cin.ufpe.dass.ontologycatalog.model.DataPropertyNode;
 import br.cin.ufpe.dass.ontologycatalog.model.ObjectPropertyNode;
 import br.cin.ufpe.dass.ontologycatalog.services.OntologyCatalogService;
+import br.cin.ufpe.dass.ontologycatalog.services.exception.OntologyAlreadyImported;
 import br.cin.ufpe.dass.ontologycatalog.services.exception.OntologyCatalogException;
 import org.semanticweb.owlapi.model.IRI;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
@@ -39,6 +40,10 @@ public class OntologyResource {
             HttpHeaders headers = new HttpHeaders();
             headers.add("errorMessage", e.getMessage());
             response = ResponseEntity.badRequest().headers(headers).body(null);
+        } catch (OntologyAlreadyImported e) {
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("errorMessage", e.getMessage());
+            response = ResponseEntity.ok().headers(headers).body(null);
         }
         return response;
     }

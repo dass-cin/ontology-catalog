@@ -47,7 +47,7 @@ public class KeywordSearchService {
 
             query = String.format("CALL algo.betweenness.stream(\n" +
                     "  'MATCH (node) RETURN id(node) as id',\n" +
-                    "  \"MATCH (k:KeywordNode)-[]-(node) WHERE k.keyword =~'.*%s.*' MATCH(node)-[]-(node2) \n", keyword);
+                    "  \"MATCH (k:KeywordNode)-[]-(node) WHERE k.keyword =~'.*%s.*' MATCH(node)-[r]-(node2) \n", keyword);
             if (ontology != null) {
                 query += String.format(" WHERE node.uri =~'.*%s.*' ", ontology);
             }

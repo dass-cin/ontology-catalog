@@ -20,7 +20,7 @@ public class DataPropertyNode implements OntologyElement  {
     private String name;
 
     //More than one domain is a unionOf
-    @Relationship(type = "domain")
+    @Relationship(type = "domain", direction = "INCOMING")
     private Set<ClassNode> domain = new HashSet<>();
 
     //range (date type)

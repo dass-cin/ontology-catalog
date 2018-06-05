@@ -23,11 +23,11 @@ public class ObjectPropertyNode implements OntologyElement {
     private String name;
 
     //More than one range is a unionOf
-    @Relationship(type = "range")
+    @Relationship(type = "range", direction = "INCOMING")
     private Set<ClassNode> range = new HashSet<>();
 
     //More than one domain is a unionOf
-    @Relationship(type = "domain")
+    @Relationship(type = "domain", direction = "INCOMING")
     private Set<ClassNode> domain = new HashSet<>();
 
     @Relationship(type = "hasKeywords")

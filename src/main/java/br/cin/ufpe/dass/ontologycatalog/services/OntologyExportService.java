@@ -6,6 +6,7 @@ import br.cin.ufpe.dass.ontologycatalog.model.ObjectPropertyNode;
 import br.cin.ufpe.dass.ontologycatalog.repository.ClassNodeRepository;
 import br.cin.ufpe.dass.ontologycatalog.repository.DataPropertyRepository;
 import br.cin.ufpe.dass.ontologycatalog.repository.ObjectPropertyRepository;
+import org.apache.commons.io.FilenameUtils;
 import org.semanticweb.owlapi.apibinding.OWLManager;
 import org.semanticweb.owlapi.model.*;
 import org.semanticweb.owlapi.util.DefaultPrefixManager;
@@ -92,7 +93,7 @@ public class OntologyExportService {
         OWLOntologyManager ontologyManager = OWLManager.createOWLOntologyManager();
         OWLDataFactory dataFactory = ontologyManager.getOWLDataFactory();
 
-        String base = String.format("http://%s#", ontologyName);
+        String base = String.format("http://%s#", ontologyName.replace("."+ FilenameUtils.getExtension(ontologyName), ""));
         PrefixManager pm = new DefaultPrefixManager(null, null, base);
 
         OWLOntology ontology = ontologyManager.createOntology(IRI.create(base));
