@@ -250,4 +250,5 @@ public class OntologyCatalogService {
     public List<Map<String, Object>> getQueryResult(String cypherQuery) {
         return classNodeRepository.getQueryResult(cypherQuery).collect(Collectors.toList());
     }
+
 }

@@ -17,6 +17,8 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import javax.annotation.PostConstruct;
 import javax.inject.Inject;
 
+import java.util.List;
+
 import static junit.framework.TestCase.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -55,6 +57,15 @@ public class KeywordSearchTest {
         assertTrue(title instanceof DataPropertyNode);
         assertTrue(((DataPropertyNode)title).getName().equals("title"));
 
+    }
+
+    @Test
+    public void shouldSearchKeyWordsPerson() {
+        String keyword = "person";
+
+        List<OntologyElement> elements = keywordSearchService.searchNodesByKeyword(ONTOLOGY, keyword);
+
+        assertTrue(elements != null && elements.size() > 1);
     }
 
     @Test

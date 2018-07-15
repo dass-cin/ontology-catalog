@@ -49,6 +49,8 @@ public class OntologyCatalogApplication {
 				ontologyCatalogService.importOntologyAsGraph(sourceIri);
 				sourceIri = IRI.create(URI.create("file:///Users/diegopessoa/Projects/phd/ontologies/conference/sigkdd.owl"));
 				ontologyCatalogService.importOntologyAsGraph(sourceIri);
+				sourceIri = IRI.create(URI.create("file:///Users/diegopessoa/Projects/phd/ontologies/conference/ekaw.owl"));
+				ontologyCatalogService.importOntologyAsGraph(sourceIri);
 			}
 		};
 	}

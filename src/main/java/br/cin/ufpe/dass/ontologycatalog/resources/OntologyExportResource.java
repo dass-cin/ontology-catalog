@@ -31,6 +31,9 @@ public class OntologyExportResource {
     @PutMapping("/ontology-export")
     public ResponseEntity<String> exportOntologySegmentAsFile(@RequestBody String segmentationQuery, @RequestParam("ontologyName") String ontologyName, @RequestParam("filepath") String filePath) {
         List<Map<String, Object>> segmentResult = ontologyCatalogService.getQueryResult(segmentationQuery);
+        if (segmentResult.size() == 0) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(null);
+        }
         try {
             ontologyExportService.exportOntologyAsFileFromSegment(ontologyName, segmentResult, filePath);
         } catch (OWLOntologyCreationException | OWLOntologyStorageException  e) {
