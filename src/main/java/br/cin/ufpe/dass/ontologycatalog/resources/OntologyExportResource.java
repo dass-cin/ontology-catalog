@@ -2,6 +2,8 @@ package br.cin.ufpe.dass.ontologycatalog.resources;
 
 import br.cin.ufpe.dass.ontologycatalog.services.OntologyCatalogService;
 import br.cin.ufpe.dass.ontologycatalog.services.OntologyExportService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyStorageException;
 import org.slf4j.Logger;
@@ -15,6 +17,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/")
+@Api(tags = "Ontology Exporting")
 public class OntologyExportResource {
 
     private static final Logger log = LoggerFactory.getLogger(OntologyExportResource.class);
@@ -29,6 +32,7 @@ public class OntologyExportResource {
     }
 
     @PutMapping("/ontology-export")
+    @ApiOperation("Export ontology as OWL")
     public ResponseEntity<String> exportOntologySegmentAsFile(@RequestBody String segmentationQuery, @RequestParam("ontologyName") String ontologyName, @RequestParam("filepath") String filePath) {
         List<Map<String, Object>> segmentResult = ontologyCatalogService.getQueryResult(segmentationQuery);
         if (segmentResult.size() == 0) {
