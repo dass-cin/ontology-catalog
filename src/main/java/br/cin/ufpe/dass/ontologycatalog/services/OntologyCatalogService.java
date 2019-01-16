@@ -1,3 +1,10 @@
+/***
+ * @author Diego E. R. Pessoa (derp@cin.ufpe.br)
+ * Copyright (C) 2018
+
+ * Services regarding the management of ontologies imported to the catalog
+ */
+
 package br.cin.ufpe.dass.ontologycatalog.services;
 
 import br.cin.ufpe.dass.ontologycatalog.components.TextNormalizer;
@@ -25,11 +32,7 @@ import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.*;
 
-/***
- * @author diego
- *
- * Services regarding the management of ontologies imported to the catalog
- */
+
 @Service
 public class OntologyCatalogService {
 
@@ -74,11 +77,6 @@ public class OntologyCatalogService {
     public void importOntologyAsGraph(IRI iri) throws OntologyCatalogException, OWLOntologyCreationException, OntologyAlreadyImported {
 
         String newOntologyUri = FilenameUtils.getName(iri.toURI().toString()).replace("."+FilenameUtils.getExtension(iri.toURI().toString()), "");
-
-//        if (this.getOntologyUris().contains("http://"+ newOntologyUri)) {
-//            throw new OntologyAlreadyImported(String.format("Ontology [%s] already imported", newOntologyUri));
-//        }
-
 
         log.info("Importing {} ontology as graph ", iri);
         OWLOntologyManager owlManager = OWLManager.createOWLOntologyManager();
